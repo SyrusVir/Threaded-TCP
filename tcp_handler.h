@@ -17,13 +17,14 @@
 typedef enum TcpHandlerCMD {
     TCPH_WRITE,
     TCPH_DISCONNECT,
-    TCPH_CLOSE
+    TCPH_STOP
 } tcp_cmd_t;
 
 typedef enum TcpHandlerState {
-    UNCONNECTED,
-    CONNECTED,
-    ERROR
+    TCPH_STATE_UNCONNECTED,
+    TCPH_STATE_CONNECTED,
+    TCPH_STATE_ERROR,
+    TCPH_STATE_STOPPED
 } tcp_state_t;
 
 typedef struct TcpHandlerMsg {
