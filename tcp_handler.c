@@ -26,17 +26,20 @@ void tcpMsgDestroy(tcp_msg_t* tcp_msg)
 
 int tcpConfigKeepalive(int socket, int idle_time_sec, int num_probes, int probe_intvl_sec)
 {
+    int status = 0;
     uint8_t val = 1;
-    setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val));
+    status += setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val));
     
     //set idle time in seconds before sending keepalive packets
-    setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec));
+    status += setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec));
     
     //Set # of keepalive packets to send before declaring connection dead
-    setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes));
+    status += setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes));
 
     //Set time interval in seconds between keepalive packets
-    setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &probe_intvl_sec, sizeof(probe_intvl_sec));
+    status += setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &probe_intvl_sec, sizeof(probe_intvl_sec));
+
+    return status;
 }
 
 tcp_handler_t* tcpHandlerInit(struct sockaddr_in server_address, int max_buffer_size)
@@ -195,7 +198,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
 
                             /******* printing output ********/
                             printf("tcp_handler::sending ");
-                            for (int i = 0; i < out_msgsize; i++)
+                            for (size_t i = 0; i < out_msgsize; i++)
                             {
                                 printf("%02X", *((uint8_t*)out_msg+i));
                             }
@@ -254,6 +257,8 @@ void* tcpHandlerMain(void* tcpHandler_void)
 
                 } //end while (tcp_handler->tcp_state == TCPH_STATE_CONNECTED)
                 break; // end case TCPH_STATE_CONNECTED
+            default:
+                break;
         } //end switch(tcp_state)
 
         close(server_socket);
@@ -262,6 +267,6 @@ void* tcpHandlerMain(void* tcpHandler_void)
         // preserve error state on exit
         if (tcp_handler->tcp_state != TCPH_STATE_ERROR) tcp_handler->tcp_state = TCPH_STATE_STOPPED;
 
-        return;
+        return NULL;
     } //end while (1) [main loop]
 } //end tcpHandlerMain()
