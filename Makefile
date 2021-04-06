@@ -1,16 +1,28 @@
-FIFOPATH = ~/Projects/General-FIFO
-LIBFLAGS = -lfifo -pthread
-CCFLAGS = -I $(FIFOPATH) -I. -L $(FIFOPATH) $(LIBFLAGS)
+CC=gcc
+CCFLAGS = -g -O -Wall -Wextra
+FIFOPATH = $(CURDIR)/Generic-FIFO
+LIBFLAGS = -pthread
+ARFLAGS = rcs
+FIFOOBJ = $(FIFOPATH)/fifo.o
 
-libtcphandler.a: tcp_handler.c 
+libtcphandler.a: tcp_handler.o $(FIFOOBJ)
+	ar $(ARFLAGS) libtcphandler.a $^
 
-tcp_handler.c: tcp_handler.h
-	gcc -g -Wall -c $@ -I. $(CCFLAGS)
+tcp_handler.o: tcp_handler.c tcp_handler.h $(FIFOOBJ)
+	$(CC) $(CCFLAGS) -c $< $(FIFOOBJ) -I. -I$(FIFOPATH) $(LIBFLAGS)
+
+*fifo.o:
+	$(MAKE) -C $(FIFOPATH) $@
+
+.PHONY clean:
+clean:
+	rm -f *.o *.a *.gch && $(MAKE) -C $(FIFOPATH) clean
+
 
 tcp_test: tcp_client_test tcp_server_test
 
 tcp_client_test: tcp_handler.c
-	gcc $@.c $^ -o $@.out $(CCFLAGS)
+	gcc $@.c $^ -o $@.out -I. -I$(FIFOPATH) $(LIBFLAGS)
 
 tcp_server_test: tcp_handler.c
-	gcc $@.c $^ -o $@.out $(CCFLAGS)
+	gcc $@.c $^ -o $@.out $-I. -I(FIFOPATH) $(LIBFLAGS)

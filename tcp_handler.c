@@ -133,6 +133,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                     /* A true error occured here; exit */
                     perror("accept() failed");
                     tcp_handler->tcp_state = TCPH_STATE_ERROR;
+                    tcp_handler->client_socket = -1;
                     return NULL;
                 }
                 else if (client_socket >= 0) 
