@@ -1,3 +1,6 @@
+#ifndef _TCP_HANDLER_H_
+#define _TCP_HANDLER_H_
+
 #include "fifo.h"
 #include <unistd.h>
 #include <sys/socket.h>
@@ -68,3 +71,4 @@ int tcpHandlerDisconnect(tcp_handler_t* tcp_handler, int priority, bool blocking
 
 //Main Consumer loop to pass to pthread_create
 void* tcpHandlerMain(void* tcpHandler_void);
+#endif
