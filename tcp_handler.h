@@ -1,7 +1,7 @@
 #ifndef _TCP_HANDLER_H_
 #define _TCP_HANDLER_H_
 
-#include "fifo.h"
+#include "Generic-FIFO/fifo.h"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
