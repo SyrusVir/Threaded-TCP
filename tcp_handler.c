@@ -261,13 +261,13 @@ void* tcpHandlerMain(void* tcpHandler_void)
             default:
                 break;
         } //end switch(tcp_state)
-
-        close(server_socket);
-        printf("tcp_handler: closed server\n");
-
-        // preserve error state on exit
-        if (tcp_handler->tcp_state != TCPH_STATE_ERROR) tcp_handler->tcp_state = TCPH_STATE_STOPPED;
-
-        return NULL;
     } //end while (1) [main loop]
+    
+    close(server_socket);
+    printf("tcp_handler: closed server\n");
+
+    // preserve error state on exit
+    if (tcp_handler->tcp_state != TCPH_STATE_ERROR) tcp_handler->tcp_state = TCPH_STATE_STOPPED;
+
+    return NULL;
 } //end tcpHandlerMain()
