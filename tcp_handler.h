@@ -11,11 +11,11 @@
 #include <netinet/tcp.h>
 
 #define START_TYPE char                 // data type of the framing data denoting start of TCP data packet
-#define START_BYTES sizeof(START_TYPE)  // number of bytes in framing data that denotes beginning of TCP data packet
+#define START_SIZE sizeof(START_TYPE)  // number of bytes in framing data that denotes beginning of TCP data packet
 #define START_DATA '|'                  // data that constitute the beginning of a TCP data packet
 
 #define HEADER_TYPE uint32_t    // Header contains number of data bytes in TCP data packet; use data type to define header length 
-#define HEADER_BYTES sizeof(HEADER_TYPE) // size of the header data type; used
+#define HEADER_SIZE sizeof(HEADER_TYPE) // size of the header data type; used
 
 typedef enum TcpHandlerCMD {
     TCPH_WRITE,

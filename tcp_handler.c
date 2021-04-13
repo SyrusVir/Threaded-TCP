@@ -190,11 +190,11 @@ void* tcpHandlerMain(void* tcpHandler_void)
                             printf("tcpHandlerMain: about to send\n");
                             
                             /******** Length Prefixing ********/
-                            size_t out_msgsize = START_BYTES + HEADER_BYTES + recv_msg->data_len;
+                            size_t out_msgsize = START_SIZE + HEADER_SIZE + recv_msg->data_len;
                             void* out_msg = malloc(out_msgsize);
                             *(START_TYPE*)out_msg = START_DATA;  // insert start data
-                            *(HEADER_TYPE*)(out_msg+START_BYTES) = recv_msg->data_len; // insert data size in header bytes
-                            memcpy(out_msg+START_BYTES+ HEADER_BYTES, recv_msg->data, recv_msg->data_len); //data bytes
+                            *(HEADER_TYPE*)(out_msg+START_SIZE) = htonl(recv_msg->data_len); // insert data size in header bytes
+                            memcpy(out_msg+START_SIZE+ HEADER_SIZE, recv_msg->data, recv_msg->data_len); //data bytes
                             /**********************************/
 
                             /******* printing output ********/
