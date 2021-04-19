@@ -18,9 +18,9 @@
 #define HEADER_SIZE sizeof(HEADER_TYPE) // size of the header data type; used
 
 typedef enum TcpHandlerCMD {
-    TCPH_WRITE,
-    TCPH_DISCONNECT,
-    TCPH_STOP
+    TCPH_CMD_WRITE,
+    TCPH_CMD_DISCONNECT,
+    TCPH_CMD_STOP
 } tcp_cmd_t;
 
 typedef enum TcpHandlerState {

@@ -65,19 +65,19 @@ tcp_msg_t** tcpHandlerDestroy(tcp_handler_t* tcp_handler)
 
 int tcpHandlerWrite(tcp_handler_t* tcp_handler, void* data, size_t data_len, int priority, bool blocking)
 {
-    void* msg = (void*)tcpMsgCreate(TCPH_WRITE, data, data_len);
+    void* msg = (void*)tcpMsgCreate(TCPH_CMD_WRITE, data, data_len);
     return fifoPush(tcp_handler->write_buffer, msg, priority, blocking);
 } //end tcpHandlerWrite()
 
 int tcpHandlerClose(tcp_handler_t* tcp_handler, int priority, bool blocking)
 {
-    void* msg = (void*)tcpMsgCreate(TCPH_STOP, NULL, 0);
+    void* msg = (void*)tcpMsgCreate(TCPH_CMD_STOP, NULL, 0);
     return fifoPush(tcp_handler->write_buffer, msg, priority, blocking);
 } //end tcpHandlerWrite()
 
 int tcpHandlerDisconnect(tcp_handler_t* tcp_handler, int priority, bool blocking)
 {
-    void* msg = (void*)tcpMsgCreate(TCPH_DISCONNECT, NULL, 0);
+    void* msg = (void*)tcpMsgCreate(TCPH_CMD_DISCONNECT, NULL, 0);
     return fifoPush(tcp_handler->write_buffer, msg, priority, blocking);
 } //end tcpHandlerDisconnect()
 
@@ -160,7 +160,10 @@ void* tcpHandlerMain(void* tcpHandler_void)
                     if (recv_msg != NULL)
                     {
                         // printf("tcp_handler.c::accept:: recv_msg = %d\n",recv_msg->CMD);
-                        if(recv_msg->CMD == TCPH_STOP)
+                        tcp_cmd_t CMD = recv_msg->CMD; // save CMD parameter
+                        tcpMsgDestroy(recv_msg); // free memory allocated for Consumer message
+                        
+                        if(CMD == TCPH_CMD_STOP)
                         {
                             close(server_socket);
                             return NULL;
@@ -172,7 +175,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
 
             case TCPH_STATE_CONNECTED:
             /**In the connected state, receive and execute commands from the buffer
-             * until the TCPH_STOP command is received or an error occurs
+             * until the TCPH_CMD_STOP command is received or an error occurs
              * 
              */ 
                 while (tcp_handler->tcp_state == TCPH_STATE_CONNECTED && !loop_stop)
@@ -186,7 +189,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                     printf("tcp_handler: received %d\n", recv_msg->CMD);
                     switch(recv_msg->CMD)
                     {
-                        case TCPH_WRITE:;
+                        case TCPH_CMD_WRITE:;
                             printf("tcpHandlerMain: about to send\n");
                             
                             /******** Length Prefixing ********/
@@ -234,20 +237,20 @@ void* tcpHandlerMain(void* tcpHandler_void)
                                 }
                             }
                             break;
-                        case TCPH_STOP:
-                            /** TCPH_STOP command is identical to TCPH_DISCONNECT
+                        case TCPH_CMD_STOP:
+                            /** TCPH_CMD_STOP command is identical to TCPH_CMD_DISCONNECT
                              * with the addition of setting the stop flag for the main loop.
                              * Hence the fall-through.
                              */
-                            printf("tcp_handler: TCPH_STOP executing\n");
+                            printf("tcp_handler: TCPH_CMD_STOP executing\n");
                             loop_stop = true;
-                        case TCPH_DISCONNECT:
+                        case TCPH_CMD_DISCONNECT:
                             /**Close the current client connection and 
                              * enter the TCPH_STATE_UNCONNECTED state
                              */
                             close(client_socket);
                             tcp_handler->client_socket = -1;
-                            printf("tcp_handler: TCPH_DISCONNECT executed\n");
+                            printf("tcp_handler: TCPH_CMD_DISCONNECT executed\n");
                             tcp_handler->tcp_state = TCPH_STATE_UNCONNECTED;
                             break;
                         default:
