@@ -170,7 +170,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                     tcp_handler->client_socket = client_socket;
 
                     //config TCP Keepalive
-                    tcpConfigKeepalive(client_socket, 15, 5, 3);
+                    tcpConfigKeepalive(client_socket, 1, 3, 1);
 
                     //state transition
                     tcp_handler->tcp_state = TCPH_STATE_CONNECTED;
