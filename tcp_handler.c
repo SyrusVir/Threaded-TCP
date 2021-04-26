@@ -1,4 +1,5 @@
 #include "tcp_handler.h"
+#define opterror(f, str) if(f < 0) {perror(str); return -1;}
 
 tcp_msg_t* tcpMsgCreate(tcp_cmd_t CMD, void* data, size_t data_len)
 {
@@ -24,37 +25,47 @@ void tcpMsgDestroy(tcp_msg_t* tcp_msg)
     return;
 } //end tcpMsgDestroy()
 
+
 int tcpConfigKeepalive(int socket, int idle_time_sec, int num_probes, int probe_intvl_sec)
 {
-    int status = 0;
+    socklen_t len; // holds size of getsockopt option
+
+    // enable keepalive
     uint8_t val = 1;
-    unsigned int val_len;
-    status += setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val));
-    getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, &val_len);
+    opterror(setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val)),
+            "SO_KEEPALIVE Error");
+    getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, &len);
     printf("SO_KEEPALIVE=%d\n", val);
     
     //set idle time in seconds before sending keepalive packets
     int idle;
-    socklen_t idle_len;
-    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec));
-    getsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle, &idle_len);
+    opterror(setsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec)),
+            "TCP_KEEPIDLE Error");
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle, &len);
     printf("TCP_KEEPIDLE=%d\n", idle);
     
     //Set # of keepalive packets to send before declaring connection dead
     int probes;
-    socklen_t probes_len;
-    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes));
-    getsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &probes, &probes_len);
+    opterror(setsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes)), 
+            "TCP_KEEPCNT Error");
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &probes, &len);
     printf("TCP_KEEPCNT=%d\n", probes);
 
     //Set time interval in seconds between keepalive packets
     int intvl;
-    socklen_t intvl_len;
-    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &probe_intvl_sec, sizeof(probe_intvl_sec));
-    getsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &intvl, &intvl_len);
+    opterror(setsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &probe_intvl_sec, sizeof(probe_intvl_sec)),
+                "TCP_KEEPITNVL Error");
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &intvl, &len);
     printf("TCP_KEEPINTVL=%d\n", intvl);
 
-    return status;
+    // enable user timeout for busy connections
+    unsigned int tcp_timeout_msec = (idle_time_sec + probe_intvl_sec * num_probes) * 1000;
+    opterror(setsockopt(socket, IPPROTO_TCP, TCP_USER_TIMEOUT, &tcp_timeout_msec, sizeof(tcp_timeout_msec)),
+                "TCP_USER_TIMEOUT Error");
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &tcp_timeout_msec, &len);
+    printf("TCP_USER_TIMEOUT=%d\n", tcp_timeout_msec);
+
+    return 0;
 }
 
 tcp_handler_t* tcpHandlerInit(struct sockaddr_in server_address, int max_buffer_size)
