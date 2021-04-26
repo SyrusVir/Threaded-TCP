@@ -28,16 +28,31 @@ int tcpConfigKeepalive(int socket, int idle_time_sec, int num_probes, int probe_
 {
     int status = 0;
     uint8_t val = 1;
+    unsigned int val_len;
     status += setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val));
+    getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, &val_len);
+    printf("SO_KEEPALIVE=%d\n", val);
     
     //set idle time in seconds before sending keepalive packets
-    status += setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec));
+    int idle;
+    socklen_t idle_len;
+    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time_sec, sizeof(idle_time_sec));
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPIDLE, &idle, &idle_len);
+    printf("TCP_KEEPIDLE=%d\n", idle);
     
     //Set # of keepalive packets to send before declaring connection dead
-    status += setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes));
+    int probes;
+    socklen_t probes_len;
+    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &num_probes, sizeof(num_probes));
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPCNT, &probes, &probes_len);
+    printf("TCP_KEEPCNT=%d\n", probes);
 
     //Set time interval in seconds between keepalive packets
-    status += setsockopt(socket, SOL_TCP, TCP_KEEPCNT, &probe_intvl_sec, sizeof(probe_intvl_sec));
+    int intvl;
+    socklen_t intvl_len;
+    status += setsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &probe_intvl_sec, sizeof(probe_intvl_sec));
+    getsockopt(socket, IPPROTO_TCP, TCP_KEEPINTVL, &intvl, &intvl_len);
+    printf("TCP_KEEPINTVL=%d\n", intvl);
 
     return status;
 }
@@ -227,7 +242,6 @@ void* tcpHandlerMain(void* tcpHandler_void)
                                     case EPIPE: //EPIPE returned if client disconnected
                                         printf("sending on dead socket. Breaking from loop.\n");
                                         tcpHandlerDisconnect(tcp_handler,-1,true);
-                                        tcp_handler->tcp_state = TCPH_STATE_UNCONNECTED;
                                         break;
                                     default: //exit for all unhandled errors
                                         perror("Error in send(): ");
