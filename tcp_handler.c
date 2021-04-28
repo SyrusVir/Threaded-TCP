@@ -84,6 +84,7 @@ tcp_handler_t* tcpHandlerInit(struct sockaddr_in server_address, int max_buffer_
 
 tcp_msg_t** tcpHandlerDestroy(tcp_handler_t* tcp_handler) 
 {   
+    if (tcp_handler == NULL) return NULL;
     tcp_msg_t** leftover = (tcp_msg_t**)fifoBufferClose(tcp_handler->write_buffer);
     free(tcp_handler);
     return leftover; 
