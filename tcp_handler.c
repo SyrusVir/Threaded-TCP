@@ -31,7 +31,7 @@ int tcpConfigKeepalive(int socket, int idle_time_sec, int num_probes, int probe_
     socklen_t len; // holds size of getsockopt option
 
     // enable keepalive
-    uint8_t val = 1;
+    int val = 1;
     opterror(setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, sizeof(val)),
             "SO_KEEPALIVE Error");
     getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,&val, &len);
@@ -135,7 +135,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
 		perror("listen() failed!");
 		return NULL;
 	}
-    printf("tcp_handler: listneing\n");
+    printf("tcp_handler: listening\n");
 
     tcp_msg_t* recv_msg;
     bool loop_stop = false;
@@ -150,7 +150,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                  * and transition to TCPH_STATE_CONNECTED state. Otherwise, poll the command queue for 1 second before 
                  * calling accept again. 
                  */
-                printf("tcp_handler: accepting\n");
+                // printf("tcp_handler: accepting\n");
                 
                 //Non-blocking call to accept
                 int client_socket = accept(server_socket, NULL, NULL);
@@ -206,17 +206,17 @@ void* tcpHandlerMain(void* tcpHandler_void)
              */ 
                 while (tcp_handler->tcp_state == TCPH_STATE_CONNECTED && !loop_stop)
                 {
-                    printf("tcpHandlerMain: waiting for CMD\n");
+                    // printf("tcpHandlerMain: waiting for CMD\n");
                     recv_msg = (tcp_msg_t*)fifoPull(tcp_handler->write_buffer,true);
 
                     //if NULL received from buffer, skip to beginning of next iteration
                     if (recv_msg == NULL) continue;
                     
-                    printf("tcp_handler: received %d\n", recv_msg->CMD);
+                    // printf("tcp_handler: received %d\n", recv_msg->CMD);
                     switch(recv_msg->CMD)
                     {
                         case TCPH_CMD_WRITE:;
-                            printf("tcpHandlerMain: about to send\n");
+                            // printf("tcpHandlerMain: about to send\n");
                             
                             /******** Length Prefixing ********/
                             ssize_t out_msgsize = START_SIZE + HEADER_SIZE + recv_msg->data_len;
@@ -227,17 +227,17 @@ void* tcpHandlerMain(void* tcpHandler_void)
                             /**********************************/
 
                             /******* printing output ********/
-                            printf("tcp_handler::sending ");
-                            for (ssize_t i = 0; i < out_msgsize; i++)
-                            {
-                                printf("%02X", *((uint8_t*)out_msg+i));
-                            }
-                            printf("\n");
+                            // printf("tcp_handler::sending ");
+                            // for (ssize_t i = 0; i < out_msgsize; i++)
+                            // {
+                            //     printf("%02X", *((uint8_t*)out_msg+i));
+                            // }
+                            // printf("\n");
                             /********************************/
 
                             ssize_t send_status = send(client_socket,out_msg, out_msgsize, MSG_NOSIGNAL);
                             free(out_msg);
-                            printf("tcpHandlerMain: send_status=%d\n", send_status);
+                            // printf("tcpHandlerMain: send_status=%d\n", send_status);
                             if (send_status >= 0) //data successfully transmitted
                             {
                                 if(send_status < out_msgsize) 
