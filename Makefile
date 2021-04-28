@@ -8,8 +8,8 @@ FIFOOBJ = $(FIFOPATH)/fifo.o
 libtcphandler.a: tcp_handler.o $(FIFOOBJ)
 	ar $(ARFLAGS) libtcphandler.a $^
 
-tcp_handler.o: tcp_handler.c tcp_handler.h $(FIFOOBJ)
-	$(CC) $(CCFLAGS) -c $< $(FIFOOBJ) -I. -I$(FIFOPATH) $(LIBFLAGS)
+tcp_handler.o: tcp_handler.c tcp_handler.h
+	$(CC) $(CCFLAGS) -c $< -I. $(LIBFLAGS)
 
 *fifo.o:
 	$(MAKE) -C $(FIFOPATH) $@

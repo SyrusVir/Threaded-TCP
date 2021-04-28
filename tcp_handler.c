@@ -219,7 +219,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                             printf("tcpHandlerMain: about to send\n");
                             
                             /******** Length Prefixing ********/
-                            size_t out_msgsize = START_SIZE + HEADER_SIZE + recv_msg->data_len;
+                            ssize_t out_msgsize = START_SIZE + HEADER_SIZE + recv_msg->data_len;
                             void* out_msg = malloc(out_msgsize);
                             *(START_TYPE*)out_msg = START_DATA;  // insert start data
                             *(HEADER_TYPE*)(out_msg+START_SIZE) = htonl(recv_msg->data_len); // insert data size in header bytes
@@ -228,7 +228,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
 
                             /******* printing output ********/
                             printf("tcp_handler::sending ");
-                            for (size_t i = 0; i < out_msgsize; i++)
+                            for (ssize_t i = 0; i < out_msgsize; i++)
                             {
                                 printf("%02X", *((uint8_t*)out_msg+i));
                             }
@@ -237,7 +237,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
 
                             ssize_t send_status = send(client_socket,out_msg, out_msgsize, MSG_NOSIGNAL);
                             free(out_msg);
-                            printf("tcpHandlerMain: send_status=%ld\n", send_status);
+                            printf("tcpHandlerMain: send_status=%d\n", send_status);
                             if (send_status >= 0) //data successfully transmitted
                             {
                                 if(send_status < out_msgsize) 
@@ -269,6 +269,7 @@ void* tcpHandlerMain(void* tcpHandler_void)
                              */
                             printf("tcp_handler: TCPH_CMD_STOP executing\n");
                             loop_stop = true;
+                            __attribute__ ((fallthrough));
                         case TCPH_CMD_DISCONNECT:
                             /**Close the current client connection and 
                              * enter the TCPH_STATE_UNCONNECTED state
